@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useAuthStore } from '../store/authStore'
 import { supabase } from '../lib/supabase'
-import { Users, Shield, Search, Plus, Save } from 'lucide-react'
+import { Users, Shield, Search, Plus, Save, Edit2, X as XIcon } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 export default function AdminDashboard() {
@@ -11,7 +11,7 @@ export default function AdminDashboard() {
   const [error, setError] = useState('')
   const [query, setQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
-  const [editingRoles, setEditingRoles] = useState({})
+  const [editing, setEditing] = useState({}) // map: id -> { full_name, avatar_url, role }
   const [inviting, setInviting] = useState(false)
   const [inviteForm, setInviteForm] = useState({
     email: '',
@@ -50,24 +50,46 @@ export default function AdminDashboard() {
     })
   }, [profiles, roleFilter, query])
 
-  const startEditRole = (id, role) => {
-    setEditingRoles((prev) => ({ ...prev, [id]: role }))
+  const startEdit = (p) => {
+    setEditing((prev) => ({
+      ...prev,
+      [p.id]: {
+        full_name: p.full_name || '',
+        avatar_url: p.avatar_url || '',
+        role: p.role || 'student',
+      },
+    }))
   }
 
-  const updateRole = async (id) => {
-    const newRole = editingRoles[id]
-    if (!newRole) return
+  const cancelEdit = (id) => {
+    setEditing((prev) => {
+      const n = { ...prev }
+      delete n[id]
+      return n
+    })
+  }
+
+  const onEditField = (id, field, value) => {
+    setEditing((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], [field]: value },
+    }))
+  }
+
+  const saveEdit = async (id) => {
+    const payload = editing[id]
+    if (!payload) return
     const { error: err } = await supabase
       .from('profiles')
-      .update({ role: newRole })
+      .update({
+        full_name: payload.full_name,
+        avatar_url: payload.avatar_url,
+        role: payload.role,
+      })
       .eq('id', id)
     if (!err) {
-      setProfiles((prev) => prev.map((p) => (p.id === id ? { ...p, role: newRole } : p)))
-      setEditingRoles((prev) => {
-        const n = { ...prev }
-        delete n[id]
-        return n
-      })
+      setProfiles((prev) => prev.map((p) => (p.id === id ? { ...p, ...payload } : p)))
+      cancelEdit(id)
     }
   }
 
@@ -193,41 +215,77 @@ export default function AdminDashboard() {
               <tr className="text-left text-gray-600">
                 <th className="py-2 pr-4">Nama</th>
                 <th className="py-2 pr-4">Email</th>
+                <th className="py-2 pr-4">Avatar URL</th>
                 <th className="py-2 pr-4">Role</th>
                 <th className="py-2 pr-4">Aksi</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((p) => (
-                <tr key={p.id} className="border-t border-gray-100">
-                  <td className="py-3 pr-4 font-medium">{p.full_name}</td>
-                  <td className="py-3 pr-4">{p.email}</td>
-                  <td className="py-3 pr-4">
-                    <select
-                      value={editingRoles[p.id] ?? p.role}
-                      onChange={(e) => startEditRole(p.id, e.target.value)}
-                      className="input-field"
-                    >
-                      <option value="admin">Admin</option>
-                      <option value="teacher">Guru</option>
-                      <option value="student">Siswa</option>
-                      <option value="parent">Orang Tua</option>
-                    </select>
-                  </td>
-                  <td className="py-3 pr-4">
-                    {editingRoles[p.id] && editingRoles[p.id] !== p.role ? (
-                      <button onClick={() => updateRole(p.id)} className="btn-primary flex items-center gap-2">
-                        <Save className="w-4 h-4" />
-                        Simpan
-                      </button>
-                    ) : (
-                      <button className="px-3 py-2 rounded-xl border-2 border-gray-200 text-gray-600" disabled>
-                        Tidak ada perubahan
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {filtered.map((p) => {
+                const e = editing[p.id]
+                return (
+                  <tr key={p.id} className="border-t border-gray-100">
+                    <td className="py-3 pr-4 font-medium">
+                      {e ? (
+                        <input
+                          type="text"
+                          className="input-field"
+                          value={e.full_name}
+                          onChange={(ev) => onEditField(p.id, 'full_name', ev.target.value)}
+                        />
+                      ) : (
+                        p.full_name
+                      )}
+                    </td>
+                    <td className="py-3 pr-4">{p.email}</td>
+                    <td className="py-3 pr-4">
+                      {e ? (
+                        <input
+                          type="text"
+                          className="input-field"
+                          placeholder="https://..."
+                          value={e.avatar_url}
+                          onChange={(ev) => onEditField(p.id, 'avatar_url', ev.target.value)}
+                        />
+                      ) : (
+                        <span className="truncate max-w-[240px] inline-block align-middle">{p.avatar_url || '-'}</span>
+                      )}
+                    </td>
+                    <td className="py-3 pr-4">
+                      {e ? (
+                        <select
+                          value={e.role}
+                          onChange={(ev) => onEditField(p.id, 'role', ev.target.value)}
+                          className="input-field"
+                        >
+                          <option value="admin">Admin</option>
+                          <option value="teacher">Guru</option>
+                          <option value="student">Siswa</option>
+                          <option value="parent">Orang Tua</option>
+                        </select>
+                      ) : (
+                        p.role
+                      )}
+                    </td>
+                    <td className="py-3 pr-4 flex gap-2">
+                      {e ? (
+                        <>
+                          <button onClick={() => saveEdit(p.id)} className="btn-primary flex items-center gap-2">
+                            <Save className="w-4 h-4" /> Simpan
+                          </button>
+                          <button onClick={() => cancelEdit(p.id)} className="px-3 py-2 rounded-xl border-2 border-gray-200 flex items-center gap-2">
+                            <XIcon className="w-4 h-4" /> Batal
+                          </button>
+                        </>
+                      ) : (
+                        <button onClick={() => startEdit(p)} className="px-3 py-2 rounded-xl border-2 border-gray-200 flex items-center gap-2">
+                          <Edit2 className="w-4 h-4" /> Edit
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
               {filtered.length === 0 && !loading && (
                 <tr>
                   <td colSpan={4} className="py-6 text-center text-gray-500">
