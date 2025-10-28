@@ -53,6 +53,20 @@ export default function LandingPage() {
           </div>
         </motion.div>
 
+        {/* Quick Links */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.15, duration: 0.5 }}
+          className="mt-8 flex flex-wrap items-center justify-center gap-3 text-sm"
+        >
+          <Link className="px-3 py-2 rounded-xl border-2 border-gray-200 hover:border-gray-300" to="/about">Tentang</Link>
+          <Link className="px-3 py-2 rounded-xl border-2 border-gray-200 hover:border-gray-300" to="/features">Fitur</Link>
+          <Link className="px-3 py-2 rounded-xl border-2 border-gray-200 hover:border-gray-300" to="/pricing">Harga</Link>
+          <Link className="px-3 py-2 rounded-xl border-2 border-gray-200 hover:border-gray-300" to="/contact">Kontak</Link>
+          <Link className="px-3 py-2 rounded-xl border-2 border-gray-200 hover:border-gray-300" to="/faq">FAQ</Link>
+        </motion.div>
+
         {/* Features Grid */}
         <motion.div 
           initial={{ opacity: 0 }}

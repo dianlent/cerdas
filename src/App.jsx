@@ -12,6 +12,11 @@ import LoadingSpinner from './components/LoadingSpinner'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminSubjects from './pages/AdminSubjects'
 import AdminQuestions from './pages/AdminQuestions'
+import AboutPage from './pages/AboutPage'
+import FeaturesPage from './pages/FeaturesPage'
+import PricingPage from './pages/PricingPage'
+import ContactPage from './pages/ContactPage'
+import FaqPage from './pages/FaqPage'
 
 function App() {
   const { user, loading, initialize } = useAuthStore()
@@ -28,6 +33,11 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/features" element={<FeaturesPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/faq" element={<FaqPage />} />
         <Route 
           path="/login" 
           element={!user ? <LoginPage /> : (user.role === 'admin' ? <Navigate to="/admin" /> : <Navigate to="/dashboard" />)} 
