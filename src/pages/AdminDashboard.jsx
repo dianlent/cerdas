@@ -96,6 +96,13 @@ export default function AdminDashboard() {
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
       </div>
 
+      <div className="card mb-6">
+        <div className="flex flex-wrap gap-3">
+          <a href="/admin/subjects" className="btn-primary">Kelola Mata Pelajaran</a>
+          <a href="/admin/questions" className="btn-primary">Kelola Pertanyaan</a>
+        </div>
+      </div>
+
       <div className="grid md:grid-cols-3 gap-4 mb-6">
         <div className="card">
           <div className="text-sm text-gray-500">Total Pengguna</div>

@@ -10,6 +10,8 @@ import GamePage from './pages/GamePage'
 import LeaderboardPage from './pages/LeaderboardPage'
 import LoadingSpinner from './components/LoadingSpinner'
 import AdminDashboard from './pages/AdminDashboard'
+import AdminSubjects from './pages/AdminSubjects'
+import AdminQuestions from './pages/AdminQuestions'
 
 function App() {
   const { user, loading, initialize } = useAuthStore()
@@ -53,6 +55,14 @@ function App() {
         <Route 
           path="/admin" 
           element={user?.role === 'admin' ? <AdminDashboard /> : <Navigate to="/login" />} 
+        />
+        <Route 
+          path="/admin/subjects" 
+          element={user?.role === 'admin' ? <AdminSubjects /> : <Navigate to="/login" />} 
+        />
+        <Route 
+          path="/admin/questions" 
+          element={user?.role === 'admin' ? <AdminQuestions /> : <Navigate to="/login" />} 
         />
         <Route 
           path="/game/:subjectId" 
