@@ -93,6 +93,17 @@ export const useAuthStore = create((set) => ({
 
   signUp: async (email, password, fullName, role, additionalData = {}) => {
     try {
+      // Pre-check: avoid duplicate profiles by email
+      const { data: existingProfile, error: existingErr } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle()
+
+      if (!existingErr && existingProfile) {
+        return { success: false, error: 'Email sudah terdaftar. Silakan gunakan email lain atau login.' }
+      }
+
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -111,7 +122,13 @@ export const useAuthStore = create((set) => ({
             role
           })
 
-        if (profileError) throw profileError
+        if (profileError) {
+          // If duplicate key on email slipped through due to race, provide friendly message
+          if (profileError.code === '23505') {
+            return { success: false, error: 'Email sudah digunakan pada profil lain.' }
+          }
+          throw profileError
+        }
 
         // Create role-specific record
         if (role === 'student') {
